@@ -164,4 +164,16 @@ function ytdlpVersion() {
   });
 }
 
-module.exports = { downloadMedia, formatArgs, ytdlpVersion, cleanup, fs };
+// Diagnostic: is a cookies file configured and readable?
+function cookieStatus() {
+  if (!COOKIES_FILE) return { configured: false, path: null, lines: 0 };
+  let lines = 0;
+  try {
+    lines = fs.readFileSync(COOKIES_FILE, 'utf8').split('\n').filter((l) => l.trim() && !l.startsWith('#')).length;
+  } catch (_) {
+    /* ignore */
+  }
+  return { configured: true, path: COOKIES_FILE, lines };
+}
+
+module.exports = { downloadMedia, formatArgs, ytdlpVersion, cleanup, cookieStatus, fs };
