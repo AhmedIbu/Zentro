@@ -24,17 +24,32 @@ const FFMPEG_LOCATION = process.env.FFMPEG_LOCATION || '';
 const COOKIES_FILE = resolveCookiesFile();
 
 function resolveCookiesFile() {
-  const explicit = process.env.YTDLP_COOKIES_FILE;
-  if (explicit && fs.existsSync(explicit)) return explicit;
+  // yt-dlp writes the cookie jar back to this file after a session, so it must
+  // live on a WRITABLE path. Render Secret Files are read-only, hence the copy.
+  const writable = path.join(os.tmpdir(), 'zentro-cookies.txt');
 
+  // 1) Explicit file path (e.g. Render Secret File /etc/secrets/cookies.txt).
+  const explicit = process.env.YTDLP_COOKIES_FILE;
+  if (explicit && fs.existsSync(explicit)) {
+    try {
+      fs.copyFileSync(explicit, writable);
+      fs.chmodSync(writable, 0o600);
+      console.log(`[ytdlp] cookies loaded from ${explicit} (copied to writable temp)`);
+      return writable;
+    } catch (err) {
+      console.error('[ytdlp] failed to copy cookies file, using read-only original:', err.message);
+      return explicit;
+    }
+  }
+
+  // 2) Inline contents via env var.
   const inline = process.env.YOUTUBE_COOKIES;
   if (inline && inline.trim()) {
     try {
-      const target = path.join(os.tmpdir(), 'zentro-cookies.txt');
       // Normalize CRLF -> LF so the Netscape cookie file parses correctly.
-      fs.writeFileSync(target, inline.replace(/\r\n/g, '\n'), { mode: 0o600 });
-      console.log('[ytdlp] using cookies from YOUTUBE_COOKIES env var');
-      return target;
+      fs.writeFileSync(writable, inline.replace(/\r\n/g, '\n'), { mode: 0o600 });
+      console.log('[ytdlp] cookies loaded from YOUTUBE_COOKIES env var');
+      return writable;
     } catch (err) {
       console.error('[ytdlp] failed to write cookies file:', err.message);
     }
