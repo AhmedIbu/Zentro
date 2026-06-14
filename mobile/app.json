@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Zentro",
+    "slug": "zentro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "zentro",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0B0B12",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zentro.app",
+      "infoPlist": {
+        "NSPhotoLibraryAddUsageDescription": "Zentro saves your downloaded videos and photos to your Camera Roll.",
+        "NSPhotoLibraryUsageDescription": "Zentro needs access to save and manage downloaded media in your library."
+      }
+    },
+    "android": {
+      "package": "com.zentro.app",
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Zentro saves downloaded media to your Camera Roll.",
+          "savePhotosPermission": "Zentro saves downloaded media to your Camera Roll.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
+  }
+}

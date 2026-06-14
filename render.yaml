@@ -1,0 +1,31 @@
+# Render Blueprint for the Zentro backend.
+# Place at the repository root. Deploy via Render Dashboard -> New -> Blueprint.
+services:
+  - type: web
+    name: zentro-backend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.1
+      # Standalone binaries downloaded by build.sh into backend/bin
+      - key: YTDLP_PATH
+        value: ./bin/yt-dlp
+      - key: FFMPEG_LOCATION
+        value: ./bin
+      # Supabase — set the secret values in the Render dashboard (sync:false)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: media-cache
+      # Set to "true" to cache files in Supabase Storage for instant re-downloads
+      - key: ENABLE_CACHE
+        value: "false"
