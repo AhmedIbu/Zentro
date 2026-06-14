@@ -13,6 +13,9 @@ const crypto = require('crypto');
 
 const YTDLP_PATH = process.env.YTDLP_PATH || 'yt-dlp';
 const FFMPEG_LOCATION = process.env.FFMPEG_LOCATION || '';
+// Lets us tell yt-dlp to use alternative YouTube clients, which can dodge the
+// datacenter-IP bot-check. Overridable via env without a code change.
+const EXTRACTOR_ARGS = process.env.YTDLP_EXTRACTOR_ARGS || '';
 
 // Cookies let yt-dlp act as a logged-in user — required to get past YouTube's
 // "confirm you're not a bot" check when running from a datacenter IP (Render).
@@ -102,6 +105,7 @@ async function downloadMedia({ url, quality = 'best', onProgress } = {}) {
   ];
   if (FFMPEG_LOCATION) args.push('--ffmpeg-location', FFMPEG_LOCATION);
   if (COOKIES_FILE) args.push('--cookies', COOKIES_FILE);
+  if (EXTRACTOR_ARGS) args.push('--extractor-args', EXTRACTOR_ARGS);
   args.push(url);
 
   return new Promise((resolve, reject) => {

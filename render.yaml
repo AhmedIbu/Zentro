@@ -31,6 +31,9 @@ services:
       # file is absent the backend simply runs without cookies (no crash).
       - key: YTDLP_COOKIES_FILE
         value: /etc/secrets/cookies.txt
+      # Alternative YouTube clients to dodge datacenter bot-checks. Tweak freely.
+      - key: YTDLP_EXTRACTOR_ARGS
+        value: "youtube:player_client=web_safari,mweb,tv,web"
       # Set to "true" to cache files in Supabase Storage for instant re-downloads
       - key: ENABLE_CACHE
         value: "false"
