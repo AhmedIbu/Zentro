@@ -26,6 +26,10 @@ services:
         sync: false
       - key: SUPABASE_BUCKET
         value: media-cache
+      # Paste a Netscape-format cookies.txt here to unblock YouTube from the
+      # cloud (set in the Render dashboard, multiline value).
+      - key: YOUTUBE_COOKIES
+        sync: false
       # Set to "true" to cache files in Supabase Storage for instant re-downloads
       - key: ENABLE_CACHE
         value: "false"

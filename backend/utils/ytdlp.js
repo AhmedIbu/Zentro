@@ -14,6 +14,34 @@ const crypto = require('crypto');
 const YTDLP_PATH = process.env.YTDLP_PATH || 'yt-dlp';
 const FFMPEG_LOCATION = process.env.FFMPEG_LOCATION || '';
 
+// Cookies let yt-dlp act as a logged-in user — required to get past YouTube's
+// "confirm you're not a bot" check when running from a datacenter IP (Render).
+// Two ways to provide them:
+//   1. YTDLP_COOKIES_FILE = absolute path to an existing cookies.txt (local dev)
+//   2. YOUTUBE_COOKIES     = full cookies.txt contents (Render env var)
+// Cookies are domain-scoped in the file, so passing them is harmless for other
+// platforms.
+const COOKIES_FILE = resolveCookiesFile();
+
+function resolveCookiesFile() {
+  const explicit = process.env.YTDLP_COOKIES_FILE;
+  if (explicit && fs.existsSync(explicit)) return explicit;
+
+  const inline = process.env.YOUTUBE_COOKIES;
+  if (inline && inline.trim()) {
+    try {
+      const target = path.join(os.tmpdir(), 'zentro-cookies.txt');
+      // Normalize CRLF -> LF so the Netscape cookie file parses correctly.
+      fs.writeFileSync(target, inline.replace(/\r\n/g, '\n'), { mode: 0o600 });
+      console.log('[ytdlp] using cookies from YOUTUBE_COOKIES env var');
+      return target;
+    } catch (err) {
+      console.error('[ytdlp] failed to write cookies file:', err.message);
+    }
+  }
+  return '';
+}
+
 // Maps the app's quality picker values to yt-dlp format selectors.
 //   bv* = best video, ba = best audio, b = best combined fallback
 const QUALITY_FORMATS = {
@@ -58,6 +86,7 @@ async function downloadMedia({ url, quality = 'best', onProgress } = {}) {
     outTemplate,
   ];
   if (FFMPEG_LOCATION) args.push('--ffmpeg-location', FFMPEG_LOCATION);
+  if (COOKIES_FILE) args.push('--cookies', COOKIES_FILE);
   args.push(url);
 
   return new Promise((resolve, reject) => {
