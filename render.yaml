@@ -13,7 +13,7 @@ services:
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
-        value: 20.11.1
+        value: 22.11.0
       # Standalone binaries downloaded by build.sh into backend/bin
       - key: YTDLP_PATH
         value: ./bin/yt-dlp
