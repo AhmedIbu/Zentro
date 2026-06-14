@@ -40,9 +40,9 @@ app.get('/', (req, res) => {
   });
 });
 
-const { cookieStatus } = require('./utils/ytdlp');
+const { ytdlpConfig } = require('./utils/ytdlp');
 app.get('/health', (req, res) =>
-  res.json({ status: 'healthy', uptime: process.uptime(), cookies: cookieStatus() })
+  res.json({ status: 'healthy', uptime: process.uptime(), ...ytdlpConfig() })
 );
 
 app.use('/download', downloadRouter);

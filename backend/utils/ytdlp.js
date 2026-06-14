@@ -195,4 +195,8 @@ function cookieStatus() {
   return { configured: true, path: COOKIES_FILE, lines };
 }
 
-module.exports = { downloadMedia, formatArgs, ytdlpVersion, cleanup, cookieStatus, fs };
+function ytdlpConfig() {
+  return { extractorArgs: EXTRACTOR_ARGS || null, cookies: cookieStatus() };
+}
+
+module.exports = { downloadMedia, formatArgs, ytdlpVersion, cleanup, cookieStatus, ytdlpConfig, fs };
