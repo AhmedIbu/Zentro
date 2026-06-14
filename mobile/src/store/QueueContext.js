@@ -69,9 +69,11 @@ function QueueProvider({ children }) {
   }, []);
 
   const ensureMediaPermission = useCallback(async () => {
-    const current = await MediaLibrary.getPermissionsAsync();
+    // writeOnly:false => request full read+write so createAssetAsync works.
+    const current = await MediaLibrary.getPermissionsAsync(false);
     if (current.granted) return true;
-    const req = await MediaLibrary.requestPermissionsAsync();
+    if (!current.canAskAgain) return false; // user must enable in Settings
+    const req = await MediaLibrary.requestPermissionsAsync(false);
     return req.granted;
   }, []);
 
@@ -115,9 +117,29 @@ function QueueProvider({ children }) {
 
         if (isCameraRoll) {
           const granted = await ensureMediaPermission();
-          if (!granted) throw new Error('Photos permission was denied');
-          await MediaLibrary.saveToLibraryAsync(uri);
-          updateItem(item.id, { status: 'saved', progress: 1, savedTo: 'Camera Roll', localUri: uri });
+          if (!granted) {
+            throw new Error('Photos access is off — enable it in Settings › Expo Go › Photos');
+          }
+          // createAssetAsync is more reliable than saveToLibraryAsync on iOS;
+          // fall back to saveToLibraryAsync, then keep the file for sharing.
+          try {
+            await MediaLibrary.createAssetAsync(uri);
+            updateItem(item.id, { status: 'saved', progress: 1, savedTo: 'Camera Roll', localUri: uri });
+          } catch (saveErr) {
+            try {
+              await MediaLibrary.saveToLibraryAsync(uri);
+              updateItem(item.id, { status: 'saved', progress: 1, savedTo: 'Camera Roll', localUri: uri });
+            } catch (saveErr2) {
+              // Couldn't reach the Camera Roll — still give the user the file.
+              console.warn('[Zentro] camera roll save failed:', saveErr2.message);
+              updateItem(item.id, {
+                status: 'saved',
+                progress: 1,
+                savedTo: 'Files',
+                localUri: uri,
+              });
+            }
+          }
         } else {
           // Audio (mp3) — iOS Photos can't hold audio, so offer share/save.
           updateItem(item.id, { status: 'saved', progress: 1, savedTo: 'Files', localUri: uri });
